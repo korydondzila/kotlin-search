@@ -10,7 +10,6 @@ import android.view.*
 import android.widget.AutoCompleteTextView
 import androidx.appcompat.widget.SearchView
 import androidx.cursoradapter.widget.CursorAdapter
-import androidx.cursoradapter.widget.SimpleCursorAdapter
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import com.example.kotlin_search.databinding.FragmentMainBinding
@@ -43,11 +42,27 @@ class MainFragment : Fragment() {
         searchView.queryHint = getString(R.string.search)
         searchView.findViewById<AutoCompleteTextView>(R.id.search_src_text).threshold = 1
 
-        val from = arrayOf(SearchManager.SUGGEST_COLUMN_TEXT_1)
-        val to = intArrayOf(R.id.item_label)
-        val cursorAdapter = SimpleCursorAdapter(context, R.layout.search_item, null, from, to, CursorAdapter.FLAG_REGISTER_CONTENT_OBSERVER)
-        val suggestions = listOf("Apple", "Blueberry", "Carrot", "Daikon")
+        val countryList = mutableListOf(
+            CountryItem(0, "Afghanistan", android.R.drawable.ic_delete),
+            CountryItem(1, "Bangladesh", android.R.drawable.ic_btn_speak_now),
+            CountryItem(2, "China", android.R.drawable.ic_menu_report_image),
+            CountryItem(3, "India", null),
+            CountryItem(4, "Japan", android.R.drawable.ic_dialog_dialer),
+            CountryItem(5, "Nepal", android.R.drawable.ic_dialog_email),
+            CountryItem(6, "North Korea", null),
+            CountryItem(7, "South Korea", android.R.drawable.ic_dialog_map),
+            CountryItem(8, "Srilanka", android.R.drawable.ic_input_add),
+            CountryItem(9, "Pakistan", android.R.drawable.ic_input_delete)
+        )
 
+        val cursor = MatrixCursor(arrayOf(BaseColumns._ID, "title", "image"))
+        countryList.forEach {
+            cursor.addRow(arrayOf(it._id, it.title, it.image))
+        }
+        val from = arrayOf("title", "image")
+        val to = intArrayOf(R.id.label, R.id.pic)
+        val cursorAdapter = CustomSimpleCursorAdapter(context, R.layout.custom_layout, cursor, from, to, CursorAdapter.FLAG_REGISTER_CONTENT_OBSERVER)
+        
         searchView.suggestionsAdapter = cursorAdapter
 
         searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
@@ -57,15 +72,15 @@ class MainFragment : Fragment() {
             }
 
             override fun onQueryTextChange(query: String?): Boolean {
-                val cursor = MatrixCursor(arrayOf(BaseColumns._ID, SearchManager.SUGGEST_COLUMN_TEXT_1))
+                val newCursor = MatrixCursor(arrayOf(BaseColumns._ID, "title", "image"))
                 query?.let {
-                    suggestions.forEachIndexed { index, suggestion ->
-                        if (suggestion.contains(query, true))
-                            cursor.addRow(arrayOf(index, suggestion))
+                    countryList.forEachIndexed { index, suggestion ->
+                        if (suggestion.title.contains(query, true))
+                            newCursor.addRow(arrayOf(index, suggestion.title, suggestion.image))
                     }
                 }
 
-                cursorAdapter.changeCursor(cursor)
+                cursorAdapter.changeCursor(newCursor)
                 return true
             }
         })
@@ -78,7 +93,7 @@ class MainFragment : Fragment() {
             override fun onSuggestionClick(position: Int): Boolean {
                 hideKeyboard()
                 val cursor = searchView.suggestionsAdapter.getItem(position) as Cursor
-                val selection = cursor.getString(cursor.getColumnIndex(SearchManager.SUGGEST_COLUMN_TEXT_1))
+                val selection = cursor.getString(cursor.getColumnIndex("title"))
                 searchView.setQuery(selection, false)
 
                 // Do something with selection
