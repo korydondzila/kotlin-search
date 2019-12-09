@@ -1,7 +1,5 @@
 package com.example.kotlin_search
 
-
-import android.app.SearchManager
 import android.database.Cursor
 import android.database.MatrixCursor
 import android.os.Bundle
@@ -62,7 +60,7 @@ class MainFragment : Fragment() {
         val from = arrayOf("title", "image")
         val to = intArrayOf(R.id.label, R.id.pic)
         val cursorAdapter = CustomSimpleCursorAdapter(context, R.layout.custom_layout, cursor, from, to, CursorAdapter.FLAG_REGISTER_CONTENT_OBSERVER)
-        
+
         searchView.suggestionsAdapter = cursorAdapter
 
         searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
